@@ -1,6 +1,4 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
+<html lang="pt-BR"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Nono Doces</title>
@@ -37,15 +35,31 @@ main{padding:18px 18px 92px;max-width:700px;margin:auto}.welcome{background:line
     <input id="user" class="field" placeholder="Usuário" value="admin">
     <input id="pass" class="field" type="password" placeholder="Senha" value="1234">
     <button class="primary" onclick="login()">ENTRAR</button>
-    <p style="font-size:13px;color:#666"><span id="syncdot" class="syncdot"></span><span id="syncmsg">Conectando à nuvem...</span></p>
+    <p style="font-size:13px;color:#666"><span id="syncdot" class="syncdot ok"></span><span id="syncmsg">Sincronizado com a nuvem</span></p>
   </div>
 </section>
 
 <section id="app" class="app">
 <header class="top"><h2 id="title">Nono Doces</h2><button style="background:none;color:#fff;font-size:22px" onclick="logout()">⋯</button></header>
-<main id="content"></main>
+<main id="content">
+ <div class="welcome"><b>Olá!</b><br>Controle diário de vendas e mensal dos clientes.</div>
+ <div class="grid">
+ <div class="stat"><small>Clientes ativos</small><strong>1</strong></div>
+ <div class="stat"><small>Doces vendidos</small><strong>1</strong></div>
+ <div class="stat"><small>Total vendido</small><strong>R$&nbsp;13,00</strong></div>
+ <div class="stat"><small>Recebido (Pix)</small><strong class="green">R$&nbsp;26,00</strong></div>
+ </div>
+ <div class="stat" style="margin-top:10px"><small>Em aberto</small><strong class="red">-R$&nbsp;13,00</strong></div>
+ <div class="cards">
+ <button class="action" onclick="openSale()">➕<b>Registrar venda</b></button>
+ <button class="action" onclick="show('clientes')">👥<b>Clientes</b></button>
+ <button class="action" onclick="show('vendas')">📅<b>Movimento</b></button>
+ <button class="action" onclick="show('financeiro')">💰<b>Fechamento</b></button>
+ <button class="action" onclick="openProduct()">🍰<b>Produtos</b></button>
+ <button class="action" onclick="show('financeiro')">📊<b>Pagamentos</b></button>
+ </div></main>
 <nav class="nav">
-<button id="n-home" onclick="show('home')"><span>⌂</span>Início</button>
+<button id="n-home" onclick="show('home')" class="active"><span>⌂</span>Início</button>
 <button id="n-vendas" onclick="show('vendas')"><span>＋</span>Vendas</button>
 <button id="n-clientes" onclick="show('clientes')"><span>♟</span>Clientes</button>
 <button id="n-fin" onclick="show('financeiro')"><span>＄</span>Financeiro</button>
@@ -153,9 +167,9 @@ function show(page){
  <button class="action" onclick="openProduct()">🍰<b>Produtos</b></button>
  <button class="action" onclick="show('financeiro')">📊<b>Pagamentos</b></button>
  </div>`}
- if(page==='vendas'){setTitle('Movimento');c.innerHTML=`<div class="row"><h3>Vendas registradas</h3><button class="primary" style="width:auto;padding:10px 14px" onclick="openSale()">+ Venda</button></div><div class="panel list">${db.sales.slice().reverse().map(s=>{let cl=db.clients.find(x=>x.id==s.clientId)?.name||'Cliente';let p=db.products.find(x=>x.id==s.productId)?.name||'Produto';return `<div class="item row"><div><b>${cl}</b><br><small>${s.date} • ${s.qty} × ${p}</small></div><div style="text-align:right">${money(s.total)}<br><span class="badge ${s.payment==='pix'?'ok':''}">${s.payment==='pix'?'Pago (Pix)':'Mensal'}</span></div></div>`}).join('')||'<p>Nenhuma venda ainda.</p>'}</div>`}
+ if(page==='vendas'){setTitle('Movimento');c.innerHTML=`<div class="row"><h3>Vendas registradas</h3><button class="primary" style="width:auto;padding:10px 14px" onclick="openSale()">+ Venda</button></div><div class="panel list">${db.sales.slice().reverse().map(s=>{let cl=db.clients.find(x=>x.id==s.clientId)?.name||'Cliente';let p=db.products.find(x=>x.id==s.productId)?.name||'Produto';return `<div class="item row"><div><b>${cl}</b><br><small>${s.date} • ${s.qty} × ${p}</small></div><div style="text-align:right">${money(s.total)}<br><span class="badge ${s.payment==='pix'?'ok':''}">${s.payment==='pix'?'Pago (Pix)':'Mensal'}</span><br><small style="color:#b23b3b" onclick="deleteSale('${s.id}')">Excluir</small></div></div>`}).join('')||'<p>Nenhuma venda ainda.</p>'}</div>`}
  if(page==='clientes'){setTitle('Clientes');c.innerHTML=`<div class="row"><h3>Clientes</h3><button class="primary" style="width:auto;padding:10px 14px" onclick="openClient()">+ Cliente</button></div><input class="field" id="search" placeholder="Buscar cliente..." oninput="renderClients()"><div id="clientList"></div>`;renderClients()}
- if(page==='financeiro'){setTitle('Fechamento mensal');let t=totals();c.innerHTML=`<div class="grid"><div class="stat"><small>Total vendido</small><strong>${money(t.sold)}</strong></div><div class="stat"><small>Recebido Pix</small><strong class="green">${money(t.paid)}</strong></div></div><div class="stat" style="margin-top:10px"><small>Em aberto</small><strong class="red">${money(t.open)}</strong></div><div class="panel"><h3>Pagamentos</h3>${db.payments.slice().reverse().map(p=>{let cl=db.clients.find(x=>x.id==p.clientId)?.name||'Cliente';return `<div class="item row"><div><b>${cl}</b><br><small>${p.date} • Pix</small></div><b class="green">${money(p.value)}</b></div>`}).join('')||'<p>Nenhum pagamento registrado.</p>'}</div><button class="primary" onclick="openPayment()">+ Registrar pagamento</button>`}
+ if(page==='financeiro'){setTitle('Fechamento mensal');let t=totals();c.innerHTML=`<div class="grid"><div class="stat"><small>Total vendido</small><strong>${money(t.sold)}</strong></div><div class="stat"><small>Recebido Pix</small><strong class="green">${money(t.paid)}</strong></div></div><div class="stat" style="margin-top:10px"><small>Em aberto</small><strong class="red">${money(t.open)}</strong></div><div class="panel"><h3>Pagamentos</h3>${db.payments.slice().reverse().map(p=>{let cl=db.clients.find(x=>x.id==p.clientId)?.name||'Cliente';return `<div class="item row"><div><b>${cl}</b><br><small>${p.date} • Pix</small></div><div style="text-align:right"><b class="green">${money(p.value)}</b><br><small style="color:#b23b3b" onclick="deletePayment('${p.id}')">Excluir</small></div></div>`}).join('')||'<p>Nenhum pagamento registrado.</p>'}</div><button class="primary" onclick="openPayment()">+ Registrar pagamento</button>`}
 }
 function renderClients(){let q=(document.getElementById('search')?.value||'').toLowerCase();let box=document.getElementById('clientList');box.innerHTML='<div class="panel">'+db.clients.filter(x=>x.name.toLowerCase().includes(q)||(x.nickname||'').toLowerCase().includes(q)||(x.phone||'').includes(q)).map(cl=>{let total=db.sales.filter(s=>s.clientId==cl.id).reduce((a,s)=>a+s.total,0);let paid=db.payments.filter(p=>p.clientId==cl.id).reduce((a,p)=>a+p.value,0);return `<div class="item row" onclick="clientDetail('${cl.id}')"><div><b>${cl.name}</b>${cl.nickname?' <small>('+cl.nickname+')</small>':''}<br><small>${money(total-paid)} em aberto</small></div><span>›</span></div>`}).join('')+'</div>'}
 function openModal(body){document.getElementById('sheet').innerHTML=body;document.getElementById('modal').classList.remove('hidden')}
@@ -198,8 +212,20 @@ function clientDetail(id){let cl=db.clients.find(x=>x.id==id),sales=db.sales.fil
 function openPayment(pref){openModal(`<h3>Registrar pagamento</h3><select id="payclient" class="field">${db.clients.map(x=>`<option value="${x.id}" ${x.id===pref?'selected':''}>${x.name}</option>`).join('')}</select><input id="payvalue" class="field" type="number" step=".01" placeholder="Valor recebido"><input id="paydate" class="field" type="date" value="${new Date().toISOString().slice(0,10)}"><button class="primary" onclick="savePayment()">SALVAR PAGAMENTO (PIX)</button><button class="field" onclick="closeModal()">Cancelar</button>`)}
 async function savePayment(){let v=+document.getElementById('payvalue').value;if(v>0){await addDoc(collection(fdb,'payments'),{clientId:document.getElementById('payclient').value,value:v,date:document.getElementById('paydate').value,createdAt:Date.now()});closeModal();show('financeiro')}}
 
+async function deletePayment(id){
+  if(confirm('Tem certeza que deseja excluir esse pagamento? Essa ação não pode ser desfeita.')){
+    await deleteDoc(doc(fdb,'payments',id));
+  }
+}
+async function deleteSale(id){
+  if(confirm('Tem certeza que deseja excluir essa venda? Essa ação não pode ser desfeita.')){
+    await deleteDoc(doc(fdb,'sales',id));
+  }
+}
+
 // expõe as funções usadas nos onclick/oninput do HTML
-Object.assign(window,{login,logout,show,openSale,updateSaleTotal,saveSale,openClient,saveClient,openProduct,saveProduct,clientDetail,openPayment,savePayment,closeModal,renderClients,deleteClient,shareWhatsApp});
+Object.assign(window,{login,logout,show,openSale,updateSaleTotal,saveSale,openClient,saveClient,openProduct,saveProduct,clientDetail,openPayment,savePayment,closeModal,renderClients,deleteClient,shareWhatsApp,deletePayment,deleteSale});
 </script>
-</body>
-</html>
+
+
+</body></html>
